@@ -1,0 +1,16 @@
+{
+  "name": "Scrap Super",
+  "short_name": "Scrap Super",
+  "description": "Kabaad ke rate dekhein aur ghar se pickup book karein",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f7f2",
+  "theme_color": "#17703f",
+  "lang": "hi",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

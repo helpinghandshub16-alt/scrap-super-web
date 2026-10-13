@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scrap Super Admin</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#17703f">
+<link rel="manifest" href="manifest-admin.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SS Admin">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Hind:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="banner" id="demoBanner" hidden>Demo mode — password: admin123</div>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="admin.html"><img src="icons/icon-192.png" alt="">Admin</a>
+    <button class="btn small sun" id="logoutBtn" type="button" hidden>Logout</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Login -->
+  <section id="loginBox" hidden>
+    <div class="panel" style="max-width:420px;margin:20px auto">
+      <form id="loginForm">
+        <h2>Admin login</h2>
+        <label for="l_email">Email
+          <input id="l_email" type="email" autocomplete="username" required>
+        </label>
+        <label for="l_pass">Password
+          <input id="l_pass" type="password" autocomplete="current-password" required>
+        </label>
+        <p class="err" id="loginErr" hidden></p>
+        <button class="btn" type="submit">Login</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dash" hidden>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabOrders" aria-selected="true" type="button">Orders</button>
+      <button role="tab" id="tabRates" aria-selected="false" type="button">Rates badlein</button>
+    </div>
+
+    <div id="paneOrders">
+      <div class="stats">
+        <div class="stat"><b id="sNew">0</b><span>Naye</span></div>
+        <div class="stat"><b id="sToday">0</b><span>Aaj ke pickup</span></div>
+        <div class="stat"><b id="sDone">0</b><span>Pick ho gaye</span></div>
+        <div class="stat"><b id="sAll">0</b><span>Kul orders</span></div>
+      </div>
+      <div class="toolbar">
+        <input id="q" type="search" placeholder="Naam / number / pata khojein">
+        <select id="fStatus">
+          <option value="">Sab status</option>
+          <option>Naya</option><option>Confirmed</option><option>Picked</option><option>Cancel</option>
+        </select>
+        <select id="fDate">
+          <option value="">Sab tareekh</option>
+          <option value="today">Aaj</option>
+          <option value="tomorrow">Kal</option>
+          <option value="upcoming">Aane wale</option>
+        </select>
+        <button class="btn small ghost" id="csvBtn" type="button">Excel (CSV) copy</button>
+      </div>
+      <div class="orders" id="orderList"></div>
+    </div>
+
+    <div id="paneRates" hidden>
+      <p class="note" style="margin-top:0">Rate badal kar “Save” dabayein. Website par turant badal jayega. Photo badalne ke liye image ka link (URL) daalein.</p>
+      <div class="orders" id="rateList"></div>
+      <div class="toolbar"><button class="btn small" id="addRate" type="button">+ Naya scrap jodein</button></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="store.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Sirf ye email admin hai — apna admin email yahan likhein
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == "ADMIN_EMAIL_YAHAN";
+    }
+    // Rates: sab dekh sakte hain, sirf admin badal sakta hai
+    match /rates/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Orders: koi bhi customer naya order bana sakta hai, sirf admin dekh/badal sakta hai
+    match /orders/{id} {
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.name.size() > 0 && request.resource.data.name.size() < 100
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.matches('^[6-9][0-9]{9}$')
+                    && request.resource.data.address is string && request.resource.data.address.size() < 500
+                    && request.resource.data.status == "Naya";
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
