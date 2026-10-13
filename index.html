@@ -4,123 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Scrap Super</title>
-<meta name="description" content="Ghar baithe kabaad bechiye. Scrap ke aaj ke rate dekhiye aur free pickup book kijiye.">
+<meta name="description" content="Ghar baithe kabaad bechiye — aaj ke rate dekhiye aur free pickup book kijiye.">
 <meta name="theme-color" content="#17703f">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Scrap Super">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Hind:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="banner" id="demoBanner" hidden>Demo mode: abhi bookings sirf isi phone me save ho rahi hain. README dekh kar Firebase jodiye.</div>
-
-<header class="top">
-  <div class="wrap">
-    <a class="logo" href="#"><img src="icons/icon-192.png" alt="">Scrap Super</a>
-    <a class="call" id="callBtn" href="#">Call karein</a>
-  </div>
-</header>
-
-<main class="wrap">
-  <div class="hero">
-    <h1>Kabaad do, <em>turant paisa</em> lo</h1>
-    <p>Akhbaar, gatta, plastic, loha, tamba — sab ghar se uthate hain. Sahi kaanta, sahi rate, pickup bilkul free.</p>
-    <div class="steps">
-      <span><b>1</b>Rate dekhein</span>
-      <span><b>2</b>Pickup book karein</span>
-      <span><b>3</b>Ghar par paisa</span>
-    </div>
-    <div><a class="btn sun" href="#book">Pickup book karein</a></div>
-  </div>
-
-  <section id="rates">
-    <div class="sec-head">
-      <h2>Aaj ke rate</h2>
-      <small id="rateDate"></small>
-    </div>
-    <div class="rates" id="rateGrid"></div>
-    <p class="note">Rate prati kilo (₹/kg) hain. Maal ki quality aur market ke hisaab se thoda badal sakte hain. Final rate kaante par tay hoga.</p>
-  </section>
-
-  <section id="book">
-    <div class="sec-head"><h2>Pickup book karein</h2></div>
-    <div class="panel">
-      <form id="bookForm" novalidate>
-        <div class="row2">
-          <label for="f_name">Aapka naam
-            <input id="f_name" name="name" autocomplete="name" required placeholder="Ramesh Kumar">
-          </label>
-          <label for="f_phone">Mobile number
-            <input id="f_phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" required placeholder="10 digit number">
-          </label>
-        </div>
-        <label for="f_addr">Pura pata (address)
-          <textarea id="f_addr" name="address" autocomplete="street-address" required placeholder="Makaan no., gali, mohalla, landmark"></textarea>
-        </label>
-        <fieldset style="border:0;padding:0;margin:0;display:grid;gap:8px">
-          <legend style="font-weight:600;font-size:.95rem;margin-bottom:6px">Kaun sa scrap hai?</legend>
-          <div class="chips" id="itemChips"></div>
-        </fieldset>
-        <div class="row2">
-          <label for="f_qty">Andaazan vazan <span class="opt">(optional)</span>
-            <select id="f_qty" name="qty">
-              <option value="">Pata nahi</option>
-              <option>10 kg se kam</option>
-              <option>10–50 kg</option>
-              <option>50–100 kg</option>
-              <option>100 kg se zyada</option>
-            </select>
-          </label>
-          <label for="f_date">Pickup ki tareekh
-            <input id="f_date" name="date" type="date" required>
-          </label>
-        </div>
-        <div class="row2">
-          <label for="f_slot">Samay
-            <select id="f_slot" name="slot">
-              <option>Subah (9–12)</option>
-              <option>Dopahar (12–3)</option>
-              <option>Shaam (3–7)</option>
-            </select>
-          </label>
-          <label for="f_note">Aur kuch? <span class="opt">(optional)</span>
-            <input id="f_note" name="note" placeholder="Jaise: purana fridge bhi hai">
-          </label>
-        </div>
-        <p class="err" id="formErr" hidden></p>
-        <button class="btn" id="submitBtn" type="submit">Pickup confirm karein</button>
-      </form>
-      <div class="done" id="doneBox" hidden>
-        <div class="tick">✓</div>
-        <h3>Booking ho gayi!</h3>
-        <p>Aapka booking number: <code id="doneId"></code><br>Hamari team jaldi aapko call karegi.</p>
-        <button class="btn ghost" id="againBtn" type="button">Ek aur booking</button>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="wrap">
-  © Scrap Super · <span id="footCity"></span> · <a href="admin.html">Admin</a>
-</footer>
-
-<div id="installBar" hidden>
-  <p id="installText">Scrap Super ko app ki tarah phone par rakhein</p>
-  <button class="btn sun small" id="installBtn" type="button">Install</button>
-  <button class="btn small ghost" id="installClose" type="button" style="color:inherit" aria-label="Band karein">✕</button>
-</div>
-
-<!-- Firebase (Google) -->
+<body data-page="home">
+<main id="app" class="wrap"><noscript>Please enable JavaScript.</noscript></main>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="data.js"></script>
+<script src="i18n.js"></script>
 <script src="store.js"></script>
-<script src="app.js"></script>
+<script src="common.js"></script>
+<script src="pages.js"></script>
 </body>
 </html>

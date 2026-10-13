@@ -1,99 +1,88 @@
 // Data layer: Firebase Firestore agar config bhara hai, warna DEMO (localStorage)
 (function () {
-  const DEFAULT_RATES = [
-    { id: "newspaper", name: "Akhbaar / Newspaper", price: 14, unit: "kg", img: "images/newspaper.svg", order: 1 },
-    { id: "cardboard", name: "Gatta / Cardboard", price: 10, unit: "kg", img: "images/cardboard.svg", order: 2 },
-    { id: "books", name: "Copy / Kitaab", price: 12, unit: "kg", img: "images/books.svg", order: 3 },
-    { id: "plastic", name: "Plastic", price: 12, unit: "kg", img: "images/plastic.svg", order: 4 },
-    { id: "iron", name: "Loha / Iron", price: 28, unit: "kg", img: "images/iron.svg", order: 5 },
-    { id: "steel", name: "Steel", price: 40, unit: "kg", img: "images/steel.svg", order: 6 },
-    { id: "aluminium", name: "Aluminium", price: 110, unit: "kg", img: "images/aluminium.svg", order: 7 },
-    { id: "copper", name: "Tamba / Copper", price: 650, unit: "kg", img: "images/copper.svg", order: 8 },
-    { id: "brass", name: "Peetal / Brass", price: 400, unit: "kg", img: "images/brass.svg", order: 9 },
-    { id: "battery", name: "Battery (Inverter)", price: 80, unit: "kg", img: "images/battery.svg", order: 10 }
-  ];
-
   const cfg = window.FIREBASE_CONFIG || {};
-  const live = cfg.apiKey && cfg.apiKey !== "PASTE_HERE" && window.firebase;
+  const live = !!(cfg.apiKey && cfg.apiKey !== "PASTE_HERE" && window.firebase);
   let fs = null, auth = null;
-  if (live) {
-    firebase.initializeApp(cfg);
-    fs = firebase.firestore();
-    auth = firebase.auth();
-  }
+  if (live) { firebase.initializeApp(cfg); fs = firebase.firestore(); auth = firebase.auth ? firebase.auth() : null; }
 
   const ls = {
-    get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } },
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
+  const key = c => "ss_db_" + c;
+  const defaults = { rates: () => window.DEFAULT_RATES || [], news: () => window.DEFAULT_NEWS || [] };
+  const demoAll = c => ls.get(key(c), defaults[c] ? defaults[c]() : []);
+
+  // Booking number: SS + 6 akshar (galti se milte-julte akshar hataye)
+  const ABC = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const newId = (p = "SS") => p + Array.from(crypto.getRandomValues(new Uint8Array(6)), b => ABC[b % ABC.length]).join("");
+
+  const sortBy = (list, f, desc) => list.slice().sort((a, b) => (a[f] > b[f] ? 1 : a[f] < b[f] ? -1 : 0) * (desc ? -1 : 1));
 
   window.Store = {
-    isLive: !!live,
+    isLive: live,
+    newId,
 
-    async getRates() {
-      if (!live) return ls.get("ss_rates", DEFAULT_RATES);
-      const snap = await fs.collection("rates").orderBy("order").get();
-      if (snap.empty) return DEFAULT_RATES;
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    async list(c, orderField = "createdAt", desc = true) {
+      if (!live) return sortBy(demoAll(c), orderField, desc);
+      let q = fs.collection(c).orderBy(orderField, desc ? "desc" : "asc");
+      const s = await q.get();
+      if (s.empty && defaults[c]) return defaults[c]();
+      return s.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
-    async saveRate(rate) {
+    async get(c, id) {
+      if (!live) return demoAll(c).find(x => x.id === id) || null;
+      const d = await fs.collection(c).doc(id).get();
+      return d.exists ? { id: d.id, ...d.data() } : null;
+    },
+
+    async set(c, id, data) {
       if (!live) {
-        const all = ls.get("ss_rates", DEFAULT_RATES);
-        const i = all.findIndex(r => r.id === rate.id);
-        if (i >= 0) all[i] = rate; else all.push(rate);
-        ls.set("ss_rates", all); return;
+        const all = demoAll(c); const i = all.findIndex(x => x.id === id);
+        const row = { ...data, id }; if (i >= 0) all[i] = row; else all.unshift(row);
+        ls.set(key(c), all); return id;
       }
-      const { id, ...data } = rate;
-      await fs.collection("rates").doc(id).set(data);
+      const { id: _drop, ...clean } = data;
+      await fs.collection(c).doc(id).set(clean); return id;
     },
 
-    async deleteRate(id) {
-      if (!live) { ls.set("ss_rates", ls.get("ss_rates", DEFAULT_RATES).filter(r => r.id !== id)); return; }
-      await fs.collection("rates").doc(id).delete();
-    },
-
-    async seedRatesIfEmpty() {
-      if (!live) return;
-      const snap = await fs.collection("rates").limit(1).get();
-      if (!snap.empty) return;
-      const batch = fs.batch();
-      DEFAULT_RATES.forEach(({ id, ...d }) => batch.set(fs.collection("rates").doc(id), d));
-      await batch.commit();
-    },
-
-    async addOrder(order) {
-      const o = { ...order, status: "Naya", createdAt: Date.now() };
+    async update(c, id, patch) {
       if (!live) {
-        const all = ls.get("ss_orders", []);
-        o.id = "D" + Date.now().toString().slice(-6);
-        all.unshift(o); ls.set("ss_orders", all); return o.id;
+        const all = demoAll(c); const o = all.find(x => x.id === id);
+        if (o) Object.assign(o, patch); ls.set(key(c), all); return;
       }
-      const ref = await fs.collection("orders").add(o);
-      return ref.id.slice(0, 6).toUpperCase();
+      await fs.collection(c).doc(id).update(patch);
     },
 
-    // callback har badlav par chalega (live updates)
-    watchOrders(cb) {
-      if (!live) { cb(ls.get("ss_orders", [])); return () => {}; }
-      return fs.collection("orders").orderBy("createdAt", "desc").onSnapshot(
+    async remove(c, id) {
+      if (!live) { ls.set(key(c), demoAll(c).filter(x => x.id !== id)); return; }
+      await fs.collection(c).doc(id).delete();
+    },
+
+    // Customer / visitor ki taraf se naya record (order, application, message)
+    async create(c, data, prefix) {
+      const id = newId(prefix);
+      await this.set(c, id, { ...data, createdAt: Date.now() });
+      return id;
+    },
+
+    // Admin: live updates
+    watch(c, cb, orderField = "createdAt") {
+      if (!live) { cb(sortBy(demoAll(c), orderField, true)); return () => {}; }
+      return fs.collection(c).orderBy(orderField, "desc").onSnapshot(
         s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))),
-        e => alertBox("Orders load nahi hue: " + e.message)
+        e => console.error(c, e)
       );
     },
 
-    async updateOrder(id, patch) {
-      if (!live) {
-        const all = ls.get("ss_orders", []);
-        const o = all.find(x => x.id === id); if (o) Object.assign(o, patch);
-        ls.set("ss_orders", all); return;
-      }
-      await fs.collection("orders").doc(id).update(patch);
-    },
-
-    async deleteOrder(id) {
-      if (!live) { ls.set("ss_orders", ls.get("ss_orders", []).filter(x => x.id !== id)); return; }
-      await fs.collection("orders").doc(id).delete();
+    async seedIfEmpty(c) {
+      if (!live || !defaults[c]) return;
+      const s = await fs.collection(c).limit(1).get();
+      if (!s.empty) return;
+      const batch = fs.batch();
+      defaults[c]().forEach(({ id, ...d }) => batch.set(fs.collection(c).doc(id), d));
+      await batch.commit();
     },
 
     // ---- Admin login ----
@@ -114,9 +103,6 @@
     }
   };
 
-  function alertBox(msg) { console.error(msg); }
-
-  // PWA: service worker register
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
   }
